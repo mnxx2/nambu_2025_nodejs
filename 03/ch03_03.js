@@ -23,6 +23,7 @@ console.log(nextDays);
 
 // 시간 차이 계산
 // nowDate는 add() 함수로 날짜 자체가 변경되었기 때문에 다른 변수 사용
+// diff() : 지정날짜부터 diff()를 사용하는 날짜까지의 날짜 계산(days, months 등)
 const startDate = moment();
 const endDate = moment("2025-08-20");
 const diffDay = endDate.diff(startDate, "days");
