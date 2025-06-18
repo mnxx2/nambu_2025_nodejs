@@ -49,3 +49,24 @@ const nowDate2 = moment();
 const christmas = moment("2025-12-25");
 const qus3DiffDays = christmas.diff(nowDate2, "days");
 console.log(`크리스마스까지 남은 일수 : ${qus3DiffDays}`);
+
+// 요일 관련
+const s3 = moment();
+console.log(`요일 : ${s3.format("d")}`);
+console.log(`요일 : ${s3.format("dd")}`);
+console.log(`요일 : ${s3.format("ddd")}`);
+console.log(`요일 : ${s3.format("dddd")}`);
+
+// 한글로 출력하려면 locale 중 ko를 추가해야함
+// locale 한국어 불러오기
+require("moment/locale/ko");
+// 한국어 locale 추가
+moment.locale("ko");
+console.log(`요일 : ${s3.format("dddd")}`);
+
+// 문제5 : 올해 크리스마스의 요일 출력
+const s4 = moment("2025-12-25");
+console.log(`올해 크리스마스의 요일 : ${s4.format("dddd")}`);
+// 문제6 : 생일의 요일 출력
+const s5 = moment("1998-09-25");
+console.log(`생일의 요일 : ${s5.format("dddd")}`);
