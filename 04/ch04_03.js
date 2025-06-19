@@ -70,7 +70,7 @@ app.put("/books/:id", (req, res) => {
 app.delete("/books/:id", (req, res) => {
   const id = req.params.id;
   // 배열을 사용하기 때문에 어떤 데이터를 사용할건지 인덱스 지정
-  const index = books.findIndex((book) => (book.id = parseInt(id)));
+  const index = books.findIndex((book) => book.id === parseInt(id));
 
   if (index === -1) {
     return res.status(404).json({ error: "책을 찾을 수 없어요" });
