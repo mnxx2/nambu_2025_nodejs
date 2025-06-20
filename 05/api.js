@@ -40,7 +40,8 @@ app.post("/posts", (req, res) => {
     `;
   // prepare() : sql문을 파싱
   // run() : 내부적으로 sql문에 변수의 값이 넣어지고 db에 데이터가 추가된다
-  db.prepare(sql).run(title, content, author);
+  const stmt = db.prepare(sql);
+  stmt.run(title, content, author);
   res.status(201).json({ message: "OK" });
 });
 
@@ -86,6 +87,21 @@ app.put("/posts/:id", (req, res) => {
 
   // 목록이 출력됨
   res.redirect("/posts");
+});
+
+// 게시글 삭제
+app.delete("/posts/:id", (req, res) => {
+  // 삭제할 게시글 id 가져오기
+  const id = req.params.id;
+  // 쿼리문 만들기
+  let sql = `delete from posts where id = ?`;
+
+  // 쿼리문 준비
+  const stmt = db.prepare(sql);
+  // 쿼리문 실행
+  stmt.run(id);
+  // 응답 보내기
+  res.json({ message: "OK" });
 });
 
 // server start
