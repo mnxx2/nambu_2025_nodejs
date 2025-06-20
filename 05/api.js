@@ -47,25 +47,41 @@ app.post("/posts", (req, res) => {
 
 // 게시글 목록 가져오기 - 목록 조회
 app.get("/posts", (req, res) => {
+  // limit : 한 페이지에 몇 개의 게시글을 가져올건지
+  // offset : 몇 번째부터 게시글을 가져올건지 시작 위치
   let sql = `
         select id, title, content, author, createAt
-        from posts order by createAt desc
+        from posts order by createAt desc limit ? offset ?
     `;
 
+  // pagination
+  // 페이지 번호를 쿼리에서 가져옴. 기본값은 1
+  const page = req.query.page ? parseInt(req.query.page) : 1;
+  const limit = 5;
+  // 인덱스 0부터 시작해서 -1
+  // 페이지가 1이면 0 ~ 4번째까지 가져오고 2면 5 ~ 9번째까지 3이면 10 ~ 14까지 가져온다
+  const offset = (page - 1) * limit; // 1~5 6~10 11~15 번째 글 보여주기
+
   const stmt = db.prepare(sql); // 쿼리 준비
-  const rows = stmt.all(); // 쿼리 날리기
+  const rows = stmt.all(limit, offset); // 쿼리 날리기, limit과 offset 전달해서 실행
   console.log(rows);
 
   res.status(200).json({ data: rows });
 });
 
 // 게시글 1개 가져오기 - 상세 정보 조회
+// 조회수 업데이트
 app.get("/posts/:id", (req, res) => {
   const id = req.params.id;
   let sql = `
         select id, title, content, author, createAt, count
         from posts where id = ?
     `;
+
+  // 한번 실행하면 실행할 때마다 조회수 업데이트
+  let ac_sql = `update posts set count = count + 1 where id = ?`;
+  // 출력물을 받을 필요가 없으니 json() 불필요
+  db.prepare(ac_sql).run(id);
 
   const stmt = db.prepare(sql);
   const post = stmt.get(id); // 실제로 쿼리문 실행, 하나를 가져올 때는 get(), 인자는 id(?자리에 들어갈 요소)

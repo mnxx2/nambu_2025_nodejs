@@ -80,15 +80,14 @@ app.put("/todos/:id", (req, res) => {
 });
 
 // 문제5 : 할일 삭제 DELETE http://localhost:3000/todos/1
-app.delete("todos/:id", (req, res) => {
+app.delete("/todos/:id", (req, res) => {
   const id = req.params.id;
-  let sql = `
-        delete from todos where id = ?;
-    `;
+  let sql = `delete from todos where id = ?;`;
 
   const stmt = db.prepare(sql);
-  const deleteTodo = stmt.run(id);
+  stmt.run(id);
   res.status(204).json({ message: "OK" });
 });
+
 // server start : npx nodemon todo.js
 app.listen(PORT, () => {});
