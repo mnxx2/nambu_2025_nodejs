@@ -14,6 +14,12 @@ const app = express();
 const PORT = 3000;
 app.use(express.json()); // 요청 응답/처리 자동
 
+// 미들웨어 생성
+app.use((req, res, next) => {
+  console.log("나의 첫번째 미들웨어");
+  next();
+});
+
 // 1. post.db 게시판 전용 테이블 생성
 // if not exists : 테이블이 있으면 만들지 않고, 없으면 아래와 같이 테이블 생성
 // autoincrement : 값을 넣지 않으면 자동 증가
@@ -155,7 +161,9 @@ app.delete("/posts/:id", (req, res) => {
 });
 
 // comment 테이블 라우팅
-// 댓글 추가 : /posts/:id/comments : id는 포스트 아이디, 커맨트 테이블은 포스트 테이블 하위이므로 뒤에 입력
+// 댓글 추가 : /posts/:id/comments : id는 포스트 아이디,
+// 커맨트 테이블은 포스트 테이블 하위이므로 뒤에 입력
+// 일관성을 위해 /posts 로 시작
 app.post("/posts/:id/comments", (req, res) => {
   const postId = req.params.id;
   const { content, author } = req.body;
@@ -176,6 +184,76 @@ app.post("/posts/:id/comments", (req, res) => {
     .prepare(`select * from comments where id = ?`)
     .get(result.lastInsertRowid);
   res.status(201).json({ message: "OK", data: newComment });
+});
+
+// 댓글 가져오기
+app.get("/posts/:id/comments", (req, res) => {
+  const postId = req.params.id;
+  const post = db.prepare(`select id from posts where id = ?`).get(postId);
+
+  if (!post) {
+    return res.status(404).json({ message: "게시글을 찾을 수 없어요." });
+  }
+
+  const sql = `
+    select id, author, content, createdAt 
+    from comments where postId = ? order by id desc;
+  `;
+
+  // 지정 포스트의 댓글 전부 가져오기 : all() 사용
+  const comments = db.prepare(sql).all(postId);
+  res.status(200).json({
+    data: comments,
+    message: "OK",
+  });
+});
+
+// 댓글 삭제
+// 일관성 유지를 위해 postId, commentsId 사용
+app.delete("/posts/:postId/comments/:commentId", (req, res) => {
+  const { postId, commentId } = req.params;
+  const comment = db
+    .prepare(`select id from comments where postId = ? and id = ?`)
+    .get(postId, commentId);
+
+  if (!comment) {
+    return res.status(404).json({ message: "댓글을 찾을 수 없어요." });
+  }
+
+  const sql = `delete from comments where id = ?;`;
+  db.prepare(sql).run(commentId);
+  res.status(204).end();
+});
+
+// 댓글 부분 업데이트(content, author 중 하나만 입력)
+app.put("/posts/:postId/comments/:commentId", (req, res) => {
+  const { postId, commentId } = req.params;
+  const { author, content } = req.body;
+
+  const comment = db
+    .prepare(`select * from comments where postId = ? and id = ?`)
+    .get(postId, commentId);
+
+  if (!comment) {
+    return res.status(404).json({ message: "댓글을 찾을 수 없어요." });
+  }
+
+  // 가져오는 값과 기존의 값을 비교해 있는 값을 사용, 없으면 둘 중 다른 값을 사용
+  const newAuthor = author !== undefined ? author : comment.author;
+  const newContent = content !== undefined ? content : comment.content;
+
+  db.prepare(`update comments set author = ?, content = ? where id = ?`).run(
+    newAuthor,
+    newContent,
+    commentId
+  );
+
+  // 수정한 댓글 가져오기
+  const updatedCommnet = db
+    .prepare(`select * from comments where id = ?`)
+    .get(commentId);
+
+  res.status(200).json({ message: "OK", data: updatedCommnet });
 });
 
 // server start
