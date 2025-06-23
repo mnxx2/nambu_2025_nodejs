@@ -27,7 +27,16 @@ const create_sql = `
         author varchar(100),
         createAt datetime default current_timestamp,
         count integer default 0
-    )
+    );
+
+    create table if not exists comments (
+      id integer primary key autoincrement,
+      content text,
+      author text,
+      createdAt datetime default current_timestamp,
+      postId integer,
+      foreign key(postId) references posts(id) on delete cascade
+    );
 `;
 db.exec(create_sql);
 
@@ -41,8 +50,11 @@ app.post("/posts", (req, res) => {
   // prepare() : sql문을 파싱
   // run() : 내부적으로 sql문에 변수의 값이 넣어지고 db에 데이터가 추가된다
   const stmt = db.prepare(sql);
-  stmt.run(title, content, author);
-  res.status(201).json({ message: "OK" });
+  const result = stmt.run(title, content, author); // insert into posts -> 자동증가된 id가 반환 : lastInsertRowid
+  const newPost = db
+    .prepare(`select * from posts where id = ?`)
+    .get(result.lastInsertRowid);
+  res.status(201).json({ message: "OK", data: newPost });
 });
 
 // 게시글 목록 가져오기 - 목록 조회
@@ -66,7 +78,22 @@ app.get("/posts", (req, res) => {
   const rows = stmt.all(limit, offset); // 쿼리 날리기, limit과 offset 전달해서 실행
   console.log(rows);
 
-  res.status(200).json({ data: rows });
+  // 전체 게시글 수 조회
+  const totalCount = db
+    .prepare(`select count(*) as count from posts`)
+    .get().count;
+  const totalPages = Math.ceil(totalCount / limit); // 전체 게시글 20, limit 5일때 20/ 5 = 4
+
+  res.status(200).json({
+    data: rows,
+    // 페이징 처리를 위한 정보
+    pagination: {
+      currentPage: page,
+      totalPages: totalPages,
+      totalCount: totalCount,
+      limit: limit,
+    },
+  });
 });
 
 // 게시글 1개 가져오기 - 상세 정보 조회
@@ -101,8 +128,15 @@ app.put("/posts/:id", (req, res) => {
   const stmt = db.prepare(sql);
   stmt.run(title, content, id); // 실제 쿼리문이 db에서 실행, 순서는 ? 순서를 기준으로
 
+  // 갱신된 포스트 정보 출력
+  const updatedPost = db.prepare(`select * from posts where id = ?;`).get(id);
+  if (!updatedPost) {
+    return res.status(404).json({ message: "게시글을 찾을 수 없습니다." });
+  }
+
+  res.status(200).json({ message: "OK", data: updatedPost });
   // 목록이 출력됨
-  res.redirect("/posts");
+  // res.redirect("/posts");
 });
 
 // 게시글 삭제
@@ -118,6 +152,30 @@ app.delete("/posts/:id", (req, res) => {
   stmt.run(id);
   // 응답 보내기
   res.json({ message: "OK" });
+});
+
+// comment 테이블 라우팅
+// 댓글 추가 : /posts/:id/comments : id는 포스트 아이디, 커맨트 테이블은 포스트 테이블 하위이므로 뒤에 입력
+app.post("/posts/:id/comments", (req, res) => {
+  const postId = req.params.id;
+  const { content, author } = req.body;
+
+  // 정확한 게시글 번호인지 확인
+  const post = db.prepare(`select id from posts where id = ?`).get(postId);
+
+  if (!post) {
+    return res.status(404).json({ message: "게시글을 찾을 수 없어요." });
+  }
+
+  // 게시글 번호가 맞는다면 댓글 추가
+  const sql = `insert into comments(postId, author, content) values(?, ?, ?);`;
+  const result = db.prepare(sql).run(postId, author, content);
+
+  // 등록된 댓글 확인
+  const newComment = db
+    .prepare(`select * from comments where id = ?`)
+    .get(result.lastInsertRowid);
+  res.status(201).json({ message: "OK", data: newComment });
 });
 
 // server start
