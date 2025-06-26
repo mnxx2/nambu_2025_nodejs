@@ -1,5 +1,7 @@
 const express = require("express");
 const noteRouter = require("./routes/notes");
+const todoRouter = require("./routes/todos");
+const postRouter = require("./routes/posts");
 const models = require("./models");
 const path = require("path");
 const app = express();
@@ -12,6 +14,28 @@ app.use(`/downloads`, express.static(path.join(__dirname, uploadDir)));
 
 // Notes url로 들어오는 주소는 전부 noteRouter 처리
 app.use("/notes", noteRouter);
+// todos url로 들어오는 주소는 전부 todoRouter 처리
+app.use("/todos", todoRouter);
+// posts url로 들어오는 주소는 전부 postRouter 처리
+app.use("/posts", postRouter);
+
+// 모든 라우터 최하단에 입력 : 라우터는 위에서부터 실행돼서 내려오기 때문
+// 404 처리 : 없는 주소를 쳐도 html error 가 아닌 Json 포맷
+app.use((req, res) => {
+  res.status(404).json({
+    status: "Fail",
+    message: "요청한 리소스는 찾을 수 없습니다.",
+  });
+});
+
+// 500 에러 처리
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({
+    status: "ERROR",
+    message: `server error : ${err.stack}`,
+  });
+});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
