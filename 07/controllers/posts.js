@@ -9,17 +9,17 @@ const createPost = async (req, res) => {
   filename = `/downloads/${filename}`;
 
   // user 정보가 있는지 확인 후 없으면 user 생성
-  let user = await models.User.findOne({
-    where: { email: "saltbready@example.com" },
-  });
+  // let user = await models.User.findOne({
+  //   where: { email: "saltbready@example.com" },
+  // });
 
-  if (!user) {
-    user = await models.User.create({
-      name: "소금빵",
-      email: "saltbready@example.com",
-      password: "12345678",
-    });
-  }
+  // if (!user) {
+  //   user = await models.User.create({
+  //     name: "소금빵",
+  //     email: "saltbready@example.com",
+  //     password: "12345678",
+  //   });
+  // }
 
   // Attatchments 추가
   let attatchments = [];
@@ -47,7 +47,8 @@ const createPost = async (req, res) => {
   const post = await models.Post.create({
     title: title,
     content: content,
-    authorId: user.id,
+    // authorId: user.id,
+    authorId: req.user.id,
     // fileName: filename,
     attatchments: attatchments,
   });
