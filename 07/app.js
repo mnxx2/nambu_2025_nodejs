@@ -2,6 +2,8 @@ const express = require("express");
 const noteRouter = require("./routes/notes");
 const todoRouter = require("./routes/todos");
 const postRouter = require("./routes/posts");
+const userRouter = require("./routes/users");
+const authRouter = require("./routes/auth");
 const models = require("./models");
 const path = require("path");
 const app = express();
@@ -18,6 +20,10 @@ app.use("/notes", noteRouter);
 app.use("/todos", todoRouter);
 // posts url로 들어오는 주소는 전부 postRouter 처리
 app.use("/posts", postRouter);
+// users url로 들어오는 주소는 전부 userRouter 처리
+app.use("/users", userRouter);
+// 비밀번호 암호화 추가 회원가입
+app.use("/auth", authRouter);
 
 // 모든 라우터 최하단에 입력 : 라우터는 위에서부터 실행돼서 내려오기 때문
 // 404 처리 : 없는 주소를 쳐도 html error 가 아닌 Json 포맷
