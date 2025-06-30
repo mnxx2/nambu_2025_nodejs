@@ -21,28 +21,32 @@ const createPost = async (req, res) => {
   //   });
   // }
 
-  // Attatchments 추가
-  let attatchments = [];
+  // Attachments 추가
+  let attachments = [];
 
   if (req.file) {
     // single file 처리
-    attatchments.push({
+    attachments.push({
       filename: req.file.filename,
-      originalname: req.file.originalname,
+      originalname: Buffer.from(req.file.originalname, "latin1").toString(
+        "utf8"
+      ),
       path: req.file.path,
       size: req.file.size,
       mimetype: req.file.mimetype,
     });
   } else if (req.files && req.files.length > 0) {
     // muliple file 처리
-    attatchments = req.files.map((file) => ({
+    attachments = req.files.map((file) => ({
       filename: file.filename,
-      originalname: file.originalname,
+      originalname: Buffer.from(file.originalname, "latin1").toString("utf8"),
       path: file.path,
       size: file.size,
       mimetype: file.mimetype,
     }));
   }
+
+  console.log(title, content, req.user.id, attachments);
 
   const post = await models.Post.create({
     title: title,
@@ -50,7 +54,7 @@ const createPost = async (req, res) => {
     // authorId: user.id,
     authorId: req.user.id,
     // fileName: filename,
-    attatchments: attatchments,
+    attachments: attachments,
   });
 
   res.status(201).json({ message: "OK", data: post });
@@ -68,6 +72,7 @@ const getPostsAll = async (req, res) => {
   const totalPosts = await models.Post.count();
 
   const posts = await models.Post.findAll({
+    include: [{ model: models.User, as: "author", attributes: ["name"] }],
     limit: pageSize,
     offset: offset,
   });
@@ -89,7 +94,9 @@ const getPostsAll = async (req, res) => {
 
 const getPost = async (req, res) => {
   const id = req.params.id;
-  const post = await models.Post.findByPk(id);
+  const post = await models.Post.findByPk(id, {
+    include: [{ model: models.User, as: "author", attributes: ["name"] }],
+  });
 
   res.status(200).json({ message: "OK", data: post });
 };

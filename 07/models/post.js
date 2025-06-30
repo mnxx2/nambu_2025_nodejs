@@ -8,7 +8,7 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: true,
       },
-      attatchments: {
+      attachments: {
         type: DataTypes.JSON, // 여러 파일 정보를 JSON으로 저장
         allowNull: true,
         defaultValue: [], // 자동으로 빈 배열 생성

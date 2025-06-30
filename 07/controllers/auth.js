@@ -41,7 +41,8 @@ const login = async (req, res) => {
 
   // 4. 정당한 사용자(이메일과 비밀번호가 일치) 임시허가증 발급
   const accessToken = generateAccessToken(user);
-  res.json({ message: "OK", accessToken: accessToken });
+  // 07 + 08 서버 실행할 때 user 정보가 없어 에러 발생 -> user 추가
+  res.json({ message: "OK", accessToken: accessToken, user });
 };
 
 module.exports = {
