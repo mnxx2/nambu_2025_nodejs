@@ -9,18 +9,21 @@ module.exports = (sequelize, DataTypes) => {
       authors: {
         type: DataTypes.STRING,
         allowNull: false,
-        defaultValue: [],
+        defaultValue: "",
       },
       publisher: {
         type: DataTypes.STRING,
       },
       isbn: {
-        type: DataTypes.STRING,
+        type: DataTypes.INTEGER,
         allowNull: false,
         unique: true,
       },
       thumbnail: {
         type: DataTypes.STRING,
+      },
+      contents: {
+        type: DataTypes.TEXT,
       },
     },
     {

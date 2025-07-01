@@ -1,3 +1,8 @@
+<<<<<<< HEAD
+=======
+//.gitignore 파일 작성 목록
+
+>>>>>>> cc476fd (bookie project practice)
 logs
 *.log
 *.log*

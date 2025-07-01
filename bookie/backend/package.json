@@ -1,7 +1,10 @@
 {
   "name": "backend",
   "version": "1.0.0",
+<<<<<<< HEAD
   "description": "",
+=======
+>>>>>>> cc476fd (bookie project practice)
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -9,7 +12,11 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+<<<<<<< HEAD
   "type": "commonjs",
+=======
+  "description": "",
+>>>>>>> cc476fd (bookie project practice)
   "dependencies": {
     "express": "^5.1.0",
     "nodemon": "^3.1.10",

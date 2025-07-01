@@ -2,6 +2,7 @@
   "development": {
     "dialect": "sqlite",
     "storage": "bookie.db"
+
   },
   "test": {
     "username": "root",
